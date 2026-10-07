@@ -1,7 +1,8 @@
+import os
 from contextlib import asynccontextmanager
 from typing import AsyncIterator
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -18,13 +19,20 @@ from app.schemas import (
     TranscriptMessage,
 )
 
+def _parse_cors_origins(value: str) -> list[str]:
+    origins = (origin.strip().rstrip("/") for origin in value.split(","))
+    return list(dict.fromkeys(origin for origin in origins if origin))
+
+
+cors_origins = _parse_cors_origins(os.getenv("CORS_ORIGINS", ""))
+
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncIterator[None]:
     groq_status = "configured" if groq_client is not None else "not configured"
     print(
-        f"AI Interview Coach API is ready at http://127.0.0.1:8000 "
-        f"(Groq {groq_status}). Docs: http://127.0.0.1:8000/docs",
+        f"AI Interview Coach API started (Groq {groq_status}; "
+        f"{len(cors_origins)} configured CORS origin(s)).",
         flush=True,
     )
     yield
@@ -34,6 +42,7 @@ app = FastAPI(title="AI Interview Coach API", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=cors_origins,
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
     allow_credentials=True,
     allow_methods=["*"],
@@ -43,7 +52,7 @@ app.add_middleware(
 
 @app.exception_handler(RequestValidationError)
 async def request_validation_error_handler(
-    _: object,
+    _: Request,
     error: RequestValidationError,
 ) -> JSONResponse:
     messages = list(dict.fromkeys(_friendly_validation_message(item) for item in error.errors()))

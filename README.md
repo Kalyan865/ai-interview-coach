@@ -7,8 +7,8 @@ A Next.js frontend and FastAPI backend for the AI Interview Coach.
 - Node.js 20.9 or newer
 - Python 3.12
 
-The frontend calls `http://localhost:8000` by default. To use a different API
-address, set `NEXT_PUBLIC_API_BASE_URL` in `frontend/.env.local`.
+In local development, the frontend uses `http://localhost:8000` by default.
+Deployments must set `NEXT_PUBLIC_API_BASE_URL` to the backend's public URL.
 
 ## Install
 
@@ -48,8 +48,8 @@ is running and whether Groq is configured. CORS allows `localhost` and
 `127.0.0.1` frontend origins on any port.
 
 Interactive API docs are available at http://localhost:8000/docs.
-On startup, the backend prints its local API address, docs URL, and whether a
-Groq API key is configured (never the key itself). Invalid requests receive
+On startup, the backend prints whether Groq is configured and how many explicit
+CORS origins are allowed (never the API key itself). Invalid requests receive
 clear 422 validation details.
 
 ## Run
@@ -71,3 +71,38 @@ npm run dev
 
 Open http://localhost:3000. The backend health endpoint is available at
 http://localhost:8000/health.
+
+## Deploy
+
+### Render backend
+
+Create a **Web Service** from this repository with:
+
+- **Root Directory:** `backend`
+- **Runtime:** Python 3
+- **Build Command:** `pip install -r requirements.txt`
+- **Start Command:** `uvicorn app.main:app --host 0.0.0.0 --port $PORT`
+- **Health Check Path:** `/health`
+
+Render uses `backend/.python-version` to select Python 3.12.15.
+
+Add these Render environment variables:
+
+- `GROQ_API_KEY`: your Groq API key
+- `CORS_ORIGINS`: your deployed Vercel origin, for example
+  `https://ai-interview-coach.vercel.app` (no trailing slash). Add any additional
+  allowed frontend origins as a comma-separated list.
+
+Render supplies `PORT`; the start command binds Uvicorn to that port.
+
+### Vercel frontend
+
+Import this repository as a Vercel project with **Root Directory** set to
+`frontend`. Add this environment variable for Production (and Preview too, if
+you want previews to call the same backend):
+
+- `NEXT_PUBLIC_API_BASE_URL`: the Render service URL, for example
+  `https://ai-interview-coach-api.onrender.com` (no trailing slash).
+
+Redeploy after setting the variable. Update Render's `CORS_ORIGINS` with the
+Vercel domain shown in the project settings, then redeploy the backend.

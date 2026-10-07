@@ -10,7 +10,7 @@ from fastapi.testclient import TestClient
 from groq import APIConnectionError
 
 from app import ai
-from app.main import app
+from app.main import _parse_cors_origins, app
 
 
 class AIApiTests(unittest.TestCase):
@@ -182,6 +182,14 @@ class AIApiTests(unittest.TestCase):
         self.assertEqual(
             response.headers["access-control-allow-origin"],
             "http://localhost:3001",
+        )
+
+    def test_cors_origins_are_parsed_from_deployment_setting(self) -> None:
+        self.assertEqual(
+            _parse_cors_origins(
+                " https://coach.example.com/ ,https://preview.example.com, "
+            ),
+            ["https://coach.example.com", "https://preview.example.com"],
         )
 
     def test_report_derives_verdict_and_pass_fail_from_score(self) -> None:
@@ -357,8 +365,8 @@ class AIApiTests(unittest.TestCase):
         with redirect_stdout(output), TestClient(app):
             pass
 
-        self.assertIn("AI Interview Coach API is ready", output.getvalue())
-        self.assertIn("http://127.0.0.1:8000/docs", output.getvalue())
+        self.assertIn("AI Interview Coach API started", output.getvalue())
+        self.assertIn("configured CORS origin(s)", output.getvalue())
 
 
 if __name__ == "__main__":

@@ -15,6 +15,7 @@ import {
   InterviewSession,
   SESSION_STORAGE_KEY,
   TranscriptMessage,
+  getApiBaseUrl,
   getApiError,
   isInterviewSession,
   isInterviewTurn,
@@ -80,7 +81,7 @@ export default function InterviewPage() {
     });
 
     try {
-      const response = await fetch(`${API_BASE_URL}/interview/answer`, {
+      const response = await fetch(`${getApiBaseUrl()}/interview/answer`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

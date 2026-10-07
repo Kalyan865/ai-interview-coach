@@ -8,6 +8,7 @@ import {
   InterviewSession,
   REPORT_STORAGE_KEY,
   SESSION_STORAGE_KEY,
+  getApiBaseUrl,
   getApiError,
   isInterviewSession,
 } from "@/lib/interview";
@@ -78,7 +79,7 @@ export default function ReportPage() {
     setError("");
 
     try {
-      const response = await fetch(`${API_BASE_URL}/report`, {
+      const response = await fetch(`${getApiBaseUrl()}/report`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

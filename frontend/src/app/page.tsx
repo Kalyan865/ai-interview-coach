@@ -9,6 +9,7 @@ import {
   REPORT_STORAGE_KEY,
   SESSION_STORAGE_KEY,
   Difficulty,
+  getApiBaseUrl,
   getApiError,
   isInterviewTurn,
 } from "@/lib/interview";
@@ -47,7 +48,7 @@ export default function Home() {
 
     setIsStarting(true);
     try {
-      const response = await fetch(`${API_BASE_URL}/interview/start`, {
+      const response = await fetch(`${getApiBaseUrl()}/interview/start`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ topic: cleanTopic, difficulty }),

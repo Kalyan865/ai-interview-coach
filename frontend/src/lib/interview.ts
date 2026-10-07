@@ -18,9 +18,22 @@ export type InterviewSession = {
   ended: boolean;
 };
 
-export const API_BASE_URL = (
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000"
-).replace(/\/+$/, "");
+const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL?.trim();
+
+export const API_BASE_URL = configuredApiBaseUrl
+  ? configuredApiBaseUrl.replace(/\/+$/, "")
+  : process.env.NODE_ENV === "development"
+    ? "http://localhost:8000"
+    : "";
+
+export function getApiBaseUrl(): string {
+  if (!API_BASE_URL) {
+    throw new Error(
+      "Backend URL is not configured. Set NEXT_PUBLIC_API_BASE_URL in Vercel and redeploy.",
+    );
+  }
+  return API_BASE_URL;
+}
 
 export const SESSION_STORAGE_KEY = "ai-interview-session";
 export const REPORT_STORAGE_KEY = "ai-interview-report";
